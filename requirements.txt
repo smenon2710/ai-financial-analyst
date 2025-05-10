@@ -3,3 +3,4 @@ openai
 yfinance
 requests
 plotly
+python-dotenv
