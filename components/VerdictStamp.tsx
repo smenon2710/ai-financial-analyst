@@ -25,6 +25,9 @@ export function VerdictStamp({
       <span className="font-mono text-xs uppercase tracking-widest text-paper/60">
         Sentiment: {sentiment}
       </span>
+      <span className="max-w-[16rem] text-center text-[0.65rem] leading-snug text-paper/40">
+        AI-generated, not financial advice. Consult a licensed advisor before investing.
+      </span>
     </div>
   );
 }
