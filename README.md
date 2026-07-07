@@ -7,6 +7,7 @@ A Next.js app that helps you:
 - 📈 Visualize historical price trends (via Yahoo Finance)
 - 🗞️ See real-time news headlines related to any stock
 - 🎯 Discover potential stock picks by sector/theme
+- ⚠️ Shows a plain-language disclaimer alongside every verdict — this is AI-generated commentary, not financial advice
 
 ---
 
