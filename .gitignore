@@ -1,19 +1,13 @@
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
-*$py.class
+# Dependencies
+node_modules/
 
-# Virtual environments
-.venv/
-venv/
-ENV/
-env/
-.ENV/
+# Next.js build output
+.next/
+out/
 
-# Streamlit cache and logs
-.streamlit/config.toml
-.streamlit/*.json
-.streamlit/*.log
+# Environment variables
+.env
+.env*.local
 
 # Mac system files
 .DS_Store
@@ -21,5 +15,6 @@ env/
 # VSCode
 .vscode/
 
-# Environment variables
-.env
+# TypeScript
+next-env.d.ts
+*.tsbuildinfo
