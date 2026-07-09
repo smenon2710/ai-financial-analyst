@@ -62,6 +62,17 @@ function friendlyFetchError(ticker: string, e: unknown): string {
   return `Couldn't fetch price data for "${ticker}" right now. Please try again shortly.`;
 }
 
+/** Lightweight existence check — a single quote lookup, no full chart
+ * fetch. Used to filter out hallucinated tickers before showing them. */
+export async function tickerExists(ticker: string): Promise<boolean> {
+  try {
+    const quote = await yahooFinance.quote(ticker);
+    return quote?.regularMarketPrice != null;
+  } catch {
+    return false;
+  }
+}
+
 export async function fetchStockData(
   ticker: string,
   period: Period = "1mo"

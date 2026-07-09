@@ -78,6 +78,11 @@ export interface StockIdea {
 export async function getStockIdeas(theme: string): Promise<StockIdea[]> {
   const prompt = `As a financial research assistant, list 4 real publicly traded companies that fit the investment theme: "${theme}".
 
+Aim for a mix, not just the most famous names:
+- At most 1-2 should be large, well-known companies where this theme is only one part of their business.
+- At least 2 should be more specific, less obvious "pure-play" companies whose business is closely tied to this exact theme.
+Avoid defaulting to the same handful of mega-cap generalists that show up for almost any tech-adjacent theme, unless they are genuinely among the most direct plays on this specific theme.
+
 For each, include:
 - Ticker
 - Company name
