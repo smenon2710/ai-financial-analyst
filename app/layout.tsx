@@ -1,5 +1,6 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Fraunces, IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
+import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 import "./globals.css";
 
 const fraunces = Fraunces({
@@ -24,6 +25,16 @@ const plexMono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   title: "AI Financial Analyst",
   description: "Ledger-style AI stock analysis: verdicts, price history, and news for any ticker.",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Fin Analyst",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#12171C",
+  viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -33,6 +44,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         className={`${fraunces.variable} ${plexSans.variable} ${plexMono.variable} font-body bg-ink text-paper antialiased`}
       >
         {children}
+        <ServiceWorkerRegister />
       </body>
     </html>
   );
