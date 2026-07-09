@@ -1,14 +1,22 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { LedgerTabs } from "@/components/LedgerTabs";
 import { AnalysisPanel } from "@/components/AnalysisPanel";
 import type { StockIdea } from "@/lib/openrouter";
-
-type TabId = "discover" | "analyze";
+import { useWatchlist } from "@/lib/watchlist";
 
 export default function Home() {
-  const [tab, setTab] = useState<TabId>("discover");
+  const { tickers: watchlistTickers, add: addToWatchlist, remove: removeFromWatchlist } =
+    useWatchlist();
+  const [selectedWatchlistTicker, setSelectedWatchlistTicker] = useState<string | null>(null);
+
+  function toggleWatchlist(ticker: string) {
+    if (watchlistTickers.includes(ticker)) {
+      removeFromWatchlist(ticker);
+    } else {
+      addToWatchlist(ticker);
+    }
+  }
 
   const [theme, setTheme] = useState("");
   const [ideas, setIdeas] = useState<StockIdea[] | null>(null);
@@ -18,6 +26,15 @@ export default function Home() {
 
   const [tickerInput, setTickerInput] = useState("");
   const [activeTicker, setActiveTicker] = useState<string | null>(null);
+
+  const [watchlistInput, setWatchlistInput] = useState("");
+
+  function addTickerToWatchlist(e: FormEvent) {
+    e.preventDefault();
+    if (!watchlistInput.trim()) return;
+    addToWatchlist(watchlistInput.trim().toUpperCase());
+    setWatchlistInput("");
+  }
 
   async function findStocks(e: FormEvent) {
     e.preventDefault();
@@ -49,8 +66,8 @@ export default function Home() {
   }
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-16">
-      <header className="mb-12">
+    <main className="mx-auto max-w-3xl px-4 pb-16 pt-[max(2.5rem,env(safe-area-inset-top))] sm:px-6 sm:pt-16">
+      <header className="mb-10 sm:mb-12">
         <p className="font-mono text-xs uppercase tracking-[0.3em] text-brass">Ledger No. 01</p>
         <h1 className="mt-2 font-display text-4xl italic text-paper sm:text-5xl">
           AI Financial Analyst
@@ -61,29 +78,94 @@ export default function Home() {
         </p>
       </header>
 
-      <LedgerTabs
-        tabs={[
-          { id: "discover", label: "Find Stocks to Buy" },
-          { id: "analyze", label: "Analyze a Specific Stock" },
-        ]}
-        active={tab}
-        onChange={(id) => setTab(id as TabId)}
-      />
+      <div className="divide-y divide-brass-dim/25 border-y border-brass-dim/25">
+        <section className="py-8">
+          <div className="mb-4 flex items-baseline justify-between">
+            <h2 className="font-display text-lg text-paper">Watchlist</h2>
+            {watchlistTickers.length > 0 && (
+              <span className="font-mono text-xs text-paper/40">{watchlistTickers.length}</span>
+            )}
+          </div>
 
-      <div className="rounded-b-sm rounded-tr-sm border border-t-0 border-paper/15 bg-paper/[0.02] p-6">
-        {tab === "discover" && (
+          <form onSubmit={addTickerToWatchlist} className="mb-4 flex flex-col gap-3 sm:flex-row">
+            <input
+              value={watchlistInput}
+              onChange={(e) => setWatchlistInput(e.target.value)}
+              placeholder="e.g. AAPL — just track it, no analysis"
+              className="w-full rounded-sm border border-paper/20 bg-ink px-4 py-3 uppercase text-paper placeholder:text-paper/40 sm:flex-1"
+            />
+            <button
+              type="submit"
+              className="w-full shrink-0 rounded-sm border border-brass/50 px-5 py-3 font-display text-sm text-brass transition-colors hover:bg-brass/10 sm:w-auto"
+            >
+              Add to Watchlist
+            </button>
+          </form>
+
+          {watchlistTickers.length === 0 ? (
+            <p className="text-sm text-paper/50">
+              Add a ticker above, or star one from any analysis below, to pin it here.
+            </p>
+          ) : (
+            <ul className="divide-y divide-paper/10">
+              {watchlistTickers.map((ticker) => (
+                <li key={ticker} className="py-3 first:pt-0">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                    <div className="flex flex-1 items-baseline gap-2 overflow-hidden">
+                      <span className="font-mono text-brass">{ticker}</span>
+                      <span className="h-px flex-1 border-b border-dotted border-paper/20" />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setSelectedWatchlistTicker(
+                            selectedWatchlistTicker === ticker ? null : ticker
+                          )
+                        }
+                        className="rounded-sm border border-brass/50 px-3 py-2 font-mono text-xs uppercase tracking-wide text-brass hover:bg-brass/10"
+                      >
+                        {selectedWatchlistTicker === ticker ? "Close" : "Analyze"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => removeFromWatchlist(ticker)}
+                        aria-label={`Remove ${ticker} from watchlist`}
+                        className="rounded-sm border border-paper/20 px-3 py-2 font-mono text-xs text-paper/50 transition-colors hover:border-stamp-sell/50 hover:text-stamp-sell"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  </div>
+                  {selectedWatchlistTicker === ticker && (
+                    <div className="mt-4">
+                      <AnalysisPanel
+                        ticker={ticker}
+                        isWatchlisted={watchlistTickers.includes(ticker)}
+                        onToggleWatchlist={() => toggleWatchlist(ticker)}
+                      />
+                    </div>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <section className="py-8">
+          <h2 className="mb-4 font-display text-lg text-paper">Find Stocks to Buy</h2>
           <div className="space-y-6">
-            <form onSubmit={findStocks} className="flex flex-wrap gap-3">
+            <form onSubmit={findStocks} className="flex flex-col gap-3 sm:flex-row">
               <input
                 value={theme}
                 onChange={(e) => setTheme(e.target.value)}
                 placeholder="e.g. AI, biotech, green energy"
-                className="min-w-[240px] flex-1 rounded-sm border border-paper/20 bg-ink px-4 py-2.5 text-paper placeholder:text-paper/40"
+                className="w-full rounded-sm border border-paper/20 bg-ink px-4 py-3 text-paper placeholder:text-paper/40 sm:flex-1"
               />
               <button
                 type="submit"
                 disabled={ideasLoading}
-                className="rounded-sm bg-brass px-5 py-2.5 font-display text-sm text-ink transition-opacity hover:opacity-90 disabled:opacity-50"
+                className="w-full shrink-0 rounded-sm bg-brass px-5 py-3 font-display text-sm text-ink transition-opacity hover:opacity-90 disabled:opacity-50 sm:w-auto"
               >
                 {ideasLoading ? "Searching…" : "Find Stocks"}
               </button>
@@ -91,16 +173,20 @@ export default function Home() {
 
             {ideasError && <p className="text-sm text-stamp-sell">{ideasError}</p>}
 
-            {ideas && (
-              <ul className="space-y-3">
+            {ideas && ideas.length === 0 && (
+              <p className="text-sm text-paper/50">
+                No verified matches for that theme — try rephrasing it.
+              </p>
+            )}
+
+            {ideas && ideas.length > 0 && (
+              <ul className="divide-y divide-paper/10">
                 {ideas.map((idea) => (
-                  <li key={idea.ticker} className="rounded-sm border border-paper/15 p-4">
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <div>
-                        <p className="font-display text-base text-paper">
-                          <span className="font-mono text-brass">{idea.ticker}</span> — {idea.name}
-                        </p>
-                        <p className="mt-1 text-sm text-paper/70">{idea.reason}</p>
+                  <li key={idea.ticker} className="py-3 first:pt-0">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-baseline">
+                      <div className="flex-1 overflow-hidden">
+                        <span className="font-mono text-brass">{idea.ticker}</span>
+                        <span className="text-paper"> — {idea.name}</span>
                       </div>
                       <button
                         type="button"
@@ -109,14 +195,19 @@ export default function Home() {
                             selectedIdeaTicker === idea.ticker ? null : idea.ticker
                           )
                         }
-                        className="rounded-sm border border-brass/50 px-3 py-1.5 font-mono text-xs uppercase tracking-wide text-brass hover:bg-brass/10"
+                        className="shrink-0 self-start rounded-sm border border-brass/50 px-3 py-2 font-mono text-xs uppercase tracking-wide text-brass hover:bg-brass/10 sm:self-auto"
                       >
                         {selectedIdeaTicker === idea.ticker ? "Close" : "Analyze"}
                       </button>
                     </div>
+                    <p className="mt-1 text-sm text-paper/60">{idea.reason}</p>
                     {selectedIdeaTicker === idea.ticker && (
                       <div className="mt-4">
-                        <AnalysisPanel ticker={idea.ticker} showNews={false} />
+                        <AnalysisPanel
+                          ticker={idea.ticker}
+                          isWatchlisted={watchlistTickers.includes(idea.ticker)}
+                          onToggleWatchlist={() => toggleWatchlist(idea.ticker)}
+                        />
                       </div>
                     )}
                   </li>
@@ -124,33 +215,39 @@ export default function Home() {
               </ul>
             )}
           </div>
-        )}
+        </section>
 
-        {tab === "analyze" && (
+        <section className="py-8">
+          <h2 className="mb-4 font-display text-lg text-paper">Analyze a Ticker</h2>
           <div className="space-y-6">
-            <form onSubmit={analyzeTicker} className="flex flex-wrap gap-3">
+            <form onSubmit={analyzeTicker} className="flex flex-col gap-3 sm:flex-row">
               <input
                 value={tickerInput}
                 onChange={(e) => setTickerInput(e.target.value)}
                 placeholder="e.g. AAPL"
-                className="min-w-[160px] flex-1 rounded-sm border border-paper/20 bg-ink px-4 py-2.5 uppercase text-paper placeholder:text-paper/40 sm:flex-none"
+                className="w-full rounded-sm border border-paper/20 bg-ink px-4 py-3 uppercase text-paper placeholder:text-paper/40 sm:flex-1"
               />
               <button
                 type="submit"
-                className="rounded-sm bg-brass px-5 py-2.5 font-display text-sm text-ink transition-opacity hover:opacity-90"
+                className="w-full shrink-0 rounded-sm bg-brass px-5 py-3 font-display text-sm text-ink transition-opacity hover:opacity-90 sm:w-auto"
               >
                 Analyze
               </button>
             </form>
 
             {activeTicker && (
-              <AnalysisPanel key={activeTicker} ticker={activeTicker} showNews />
+              <AnalysisPanel
+                key={activeTicker}
+                ticker={activeTicker}
+                isWatchlisted={watchlistTickers.includes(activeTicker)}
+                onToggleWatchlist={() => toggleWatchlist(activeTicker)}
+              />
             )}
           </div>
-        )}
+        </section>
       </div>
 
-      <footer className="mt-12 border-t border-paper/10 pt-6">
+      <footer className="mt-10 pb-[env(safe-area-inset-bottom)] pt-6">
         <p className="max-w-xl font-mono text-xs leading-relaxed text-paper/40">
           Disclaimer: all analysis, verdicts, and stock ideas on this page are generated by an AI
           model and may be inaccurate, outdated, or wrong. This is not financial advice. Do your

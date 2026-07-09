@@ -8,6 +8,7 @@ const config: Config = {
         ink: "#12171C",
         paper: "#EEE8D6",
         brass: "#B98A2E",
+        "brass-dim": "#7C5F22",
         stamp: {
           buy: "#3B6B49",
           sell: "#8E3B3B",
